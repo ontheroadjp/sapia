@@ -10,7 +10,6 @@ LINK_LIST_FILE_NAME = 'list.csv'
 if(os.path.isfile(LINK_LIST_FILE_NAME)):
     os.remove(LINK_LIST_FILE_NAME)
 
-
 urls = [
     "http://www.sapia.jp/school_exam/search/"
     , "http://www.sapia.jp/school_exam/search/search_g.html"
@@ -20,6 +19,7 @@ urls = [
 kks = pykakasi.kakasi()
 pdf_url = 'http://www.sapia.jp/school_exam/search/'
 
+index = 1
 for url in urls:
     html = requests.get(url)
     soup = BeautifulSoup(html.content, "html.parser")
@@ -44,18 +44,16 @@ for url in urls:
         else:
             hp = tds[4].find('a').attrs['href']
 
-        print(name, name_en[0]['passport'], kind, area, hp, pdf)
-        print(name
-              + ',' + name_en[0]['passport']
+        #print(name, name_en[0]['passport'], kind, area, hp, pdf)
+        print(str(index) + ',' + name + ',' + name_en[0]['passport']
               + ',' + kind
               + ',' + area
               + ',' + hp
               + ',' + pdf
               , file=codecs.open(LINK_LIST_FILE_NAME, 'a', 'utf-8'))
-
+        index += 1
 
 print('All done.')
-
 
 ###########################################################
 #PDF_LINK_LIST_FILE_NAME = 'list_pdf.csv'

@@ -32,27 +32,15 @@ function _err() {
     echo "${SCRIPT_NAME}: $1" && exit 1
 }
 
+function _args_count() {
+    echo ${#ARG_VALUES[@]}
+}
+
 function _is_exist() {
     [ -f $1 ] || [ -d $1 ] || [[ $(type $1) ]]
 }
 
-function _url_encode() {
-    echo $(echo ${1} | jq -Rr '@uri')
-}
-
-function _url_decode() {
-    echo $(echo ${1} | nkf -w --url-input)
-}
-
 # -------------------------------------------------------------
-
-function _verbose() {
-    _log "ARG_VALUES: ${ARG_VALUES[@]+'no argument'}"
-    _log "OPT_A: ${OPT_A}"
-    _log "OPT_B: ${OPT_B}"
-    _log "IS_FLAG_P: ${IS_FLAG_P}"
-    _log "${SEPARATER}"
-}
 
 ARG_VALUES=()
 OPT_A=""
@@ -60,31 +48,27 @@ OPT_B=""
 IS_FLAG_P=false
 IS_FLAG_Z=false
 
-function _main() {
-    target=$(cat ${SELF}/list.csv | cut -d ',' -f1 -f2 | peco)
-    #item=$(printf "HP\nPDF\n偏差値" | peco)
-    item=$({
-        echo "1: HP"
-        echo "2: PDF"
-        echo "3: 偏差値"
-    } | peco)
+function _verbose() {
+    #_log "ARG_VALUES: ${ARG_VALUES[@]}"
+    _log "OPT_A: ${OPT_A}"
+    _log "OPT_B: ${OPT_B}"
+    _log "IS_FLAG_P: ${IS_FLAG_P}"
+    _log "${SEPARATER}"
+}
 
-    case $(echo ${item} | cut -d ':' -f1) in
-        1)
-            open $(cat ${SELF}/list.csv | grep ${target} | cut -d ',' -f6)
-            ;;
-        2)
-            open $(cat ${SELF}/list.csv | grep ${target} | cut -d ',' -f7)
-            ;;
-        3)
-            target=$(echo ${target} | cut -d ',' -f2)
-            target=$(_url_encode "${target}")
-            open "https://www.yotsuyaotsuka.com/juken/result.php?name=${target}"
-            ;;
-    esac
+function _main() {
+    _log "Wellcome to ${SCRIPT_NAME}"
+    DIST=${SELF}/downloads
+    mkdir -p ${DIST}
+    FILE_NAME=${1}
+    while read URL
+        wget -P ${DIST} ${URL}
+    do
+    echo "All done."
 }
 
 # -------------------------------------------------------------
+
 function _analyse_args_and_options() {
     while (( $# > 0 )); do
         case $1 in
@@ -169,15 +153,19 @@ function _verify_static_var() {
     :
 }
 
+function _err_check() {
+    if _args_count == 0 && _err
+}
+
 # -------------------------------------------------------------
 # Main Routine
 # -------------------------------------------------------------
 _analyse_args_and_options $@ && {
     _set_static_var && _verify_static_var && {
+        _err_check
         _verbose
         _log 'start main process..' && _log "${SEPARATER}"
         _main
     }
 }
 exit 0
-

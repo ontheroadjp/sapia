@@ -75,9 +75,9 @@ function _main() {
     target=$(cat ${INPUT_FILE} | cut -d ',' -f1 -f2 | peco)
     #item=$(printf "HP\nPDF\n偏差値" | peco)
     item=$({
-        echo "1: HP"
-        echo "2: PDF"
-        echo "3: 偏差値"
+        echo "1: 公式 HP"
+        echo "2: Sapix スクールデータ"
+        echo "3: 四谷大塚 偏差値"
     } | peco)
 
     case $(echo ${item} | cut -d ':' -f1) in

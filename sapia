@@ -29,43 +29,74 @@ function _log() {
 }
 
 function _err() {
-    echo "${SCRIPT_NAME}: $1" && exit 1
+    echo "$1" && exit 1
 }
 
-function _args_count() {
-    echo ${#ARG_VALUES[@]}
+function _is_cmd_exist() {
+    type $@ > /dev/null 2>&1
 }
 
-function _is_exist() {
-    [ -f $1 ] || [ -d $1 ] || [[ $(type $1) ]]
+function _is_file_exist() {
+    [ -f $1 ] > /dev/null 2>&1
+}
+
+function _is_dir_exist() {
+    [ -d $1 ] > /dev/null 2>&1
+}
+
+function _url_encode() {
+    echo $(echo ${1} | jq -Rr '@uri')
+}
+
+function _url_decode() {
+    echo $(echo ${1} | nkf -w --url-input)
 }
 
 # -------------------------------------------------------------
 
 function _verbose() {
-#    _log "ARG_VALUES: ${ARG_VALUES[@]}"
-    _log "OPT_A: ${OPT_A}"
-    _log "OPT_B: ${OPT_B}"
-    _log "IS_FLAG_P: ${IS_FLAG_P}"
+#    _log "ARG_VALUES: ${ARG_VALUES[@]+'no argument'}"
+#    _log "OPT_A: ${OPT_A}"
+#    _log "OPT_B: ${OPT_B}"
+#    _log "IS_FLAG_P: ${IS_FLAG_P}"
+    _log "INPUT_FILE: ${INPUT_FILE}"
     _log "${SEPARATER}"
 }
 
-ARG_VALUES=()
-OPT_A=""
-OPT_B=""
-IS_FLAG_P=false
-IS_FLAG_Z=false
+#ARG_VALUES=()
+#OPT_A=""
+#OPT_B=""
+#IS_FLAG_P=false
+#IS_FLAG_Z=false
+
+INPUT_FILE=${SELF}/sapia_school_list.csv
 
 function _main() {
-    _log "Wellcome to ${SCRIPT_NAME}"
-    #url=$(cat list_hp.csv | peco)
-    url=$(cat list.csv | peco)
-    open $(echo ${url} | cut -d ',' -f 3)
+    target=$(cat ${INPUT_FILE} | cut -d ',' -f1 -f2 | peco)
+    #item=$(printf "HP\nPDF\n偏差値" | peco)
+    item=$({
+        echo "1: 公式 HP"
+        echo "2: Sapix スクールデータ"
+        echo "3: 四谷大塚 偏差値"
+    } | peco)
+
+    case $(echo ${item} | cut -d ':' -f1) in
+        1)
+            open $(cat ${INPUT_FILE} | grep ${target} | cut -d ',' -f6)
+            ;;
+        2)
+            open $(cat ${INPUT_FILE} | grep ${target} | cut -d ',' -f7)
+            ;;
+        3)
+            target=$(echo ${target} | cut -d ',' -f2)
+            target=$(_url_encode "${target}")
+            open "https://www.yotsuyaotsuka.com/juken/result.php?name=${target}"
+            ;;
+    esac
 }
 
 # -------------------------------------------------------------
-
-function _analyse_args_and_options() {
+function _init() {
     while (( $# > 0 )); do
         case $1 in
             -h | --help)
@@ -116,22 +147,6 @@ function _analyse_args_and_options() {
                 break
                 ;;
 
-            # for true or false flags, no argument
-            --*)
-                if [[ "$1" =~ 'z' ]]; then
-                    IS_FLAG_Z='true'
-                fi
-                shift
-                ;;
-
-            # for true or false flags, no argument
-            -*)
-                if [[ "$1" =~ 'b' ]]; then
-                    IS_FLAG_P='true'
-                fi
-                shift
-                ;;
-
             # arguments
             *)
                 ARG_VALUES+=("$1")
@@ -141,23 +156,27 @@ function _analyse_args_and_options() {
     done
 }
 
-function _set_static_var() {
-    :
+function _verify_static_var() {
+    if ! _is_file_exist ${INPUT_FILE}; then
+        _err "No ${INPUT_FILE} file."
+    fi
 }
 
-function _verify_static_var() {
+function _args_check() {
     :
+    #if [ ${#ARG_VALUES[@]} -eq 0 ]; then
+    #    _err 'no argument.'
+    #elif ! _is_file_exist ${ARG_VALUES[0]}; then
+    #    _err 'No such file.'
+    #fi
 }
 
 # -------------------------------------------------------------
 # Main Routine
 # -------------------------------------------------------------
-_analyse_args_and_options $@ && {
-    _set_static_var && _verify_static_var && {
-        _verbose
-        _log 'start main process..' && _log "${SEPARATER}"
-        _main
-    }
+_init $@ && _args_check && _verify_static_var && _verbose && {
+    _log 'start main process..' && _log "${SEPARATER}"
+    _main
 }
 exit 0
 

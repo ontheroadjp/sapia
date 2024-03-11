@@ -6,9 +6,9 @@ import sys
 from bs4 import BeautifulSoup
 import pykakasi
 
-LINK_LIST_FILE_NAME = 'list.csv'
-if(os.path.isfile(LINK_LIST_FILE_NAME)):
-    os.remove(LINK_LIST_FILE_NAME)
+OUT_FILE_NAME = 'sapia_school_list.csv'
+if(os.path.isfile(OUT_FILE_NAME)):
+    os.remove(OUT_FILE_NAME)
 
 urls = [
     "http://www.sapia.jp/school_exam/search/"
@@ -17,9 +17,9 @@ urls = [
 ]
 
 kks = pykakasi.kakasi()
-pdf_url = 'http://www.sapia.jp/school_exam/search/'
-
+pdf_baseurl = 'http://www.sapia.jp/school_exam/search/'
 index = 1
+
 for url in urls:
     html = requests.get(url)
     soup = BeautifulSoup(html.content, "html.parser")
@@ -37,20 +37,20 @@ for url in urls:
         if len(tds[3]) == 0:
             pdf = ''
         else:
-            pdf = pdf_url + tds[3].find("a").attrs['href']
+            pdf = pdf_baseurl + tds[3].find("a").attrs['href']
 
         if len(tds[4]) == 0:
             hp = ''
         else:
             hp = tds[4].find('a').attrs['href']
 
-        #print(name, name_en[0]['passport'], kind, area, hp, pdf)
+        #print(str(index), name, name_en[0]['passport'], kind, area, hp, pdf)
         print(str(index) + ',' + name + ',' + name_en[0]['passport']
               + ',' + kind
               + ',' + area
               + ',' + hp
               + ',' + pdf
-              , file=codecs.open(LINK_LIST_FILE_NAME, 'a', 'utf-8'))
+              , file=codecs.open(OUT_FILE_NAME, 'a', 'utf-8'))
         index += 1
 
 print('All done.')
@@ -99,8 +99,8 @@ print('All done.')
 #        name_en = kks.convert(name)
 #
 #        # Generate PDF URLs List
-#        pdf_url = 'http://www.sapia.jp/school_exam/search/'
-#        pdf =  pdf_url + school_pdfs[index].attrs['href']
+#        pdf_baseurl = 'http://www.sapia.jp/school_exam/search/'
+#        pdf =  pdf_baseurl + school_pdfs[index].attrs['href']
 #        print(name + ',' + name_en[0]['passport'] + ',' + pdf, file=codecs.open(PDF_LINK_LIST_FILE_NAME, 'a', 'utf-8'))
 #
 #        # Generate HP URLs List

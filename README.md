@@ -15,7 +15,7 @@ $ git clone https://github.com/ontheroadjp/sapia
 Run python script for clowling sapia web site.
 
 ```bash
-$ python3 SapiaClowler.py
+$ python sapia_clowler.py
 ```
 
 Run sapia.
